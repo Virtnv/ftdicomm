@@ -26,9 +26,18 @@ namespace ftdicomm.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("probnik")]
-        public string devSerial {
+        public string Description {
             get {
-                return ((string)(this["devSerial"]));
+                return ((string)(this["Description"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("probn")]
+        public string SerialNumber {
+            get {
+                return ((string)(this["SerialNumber"]));
             }
         }
         

@@ -20,7 +20,6 @@ namespace ftdicomm
     /// </summary>
     public partial class MainWindow : Window
     {
-        private string deviceSerial;
 
         public MainWindow()
         {
@@ -31,15 +30,22 @@ namespace ftdicomm
 
         private void LoadShowProperties()
         {
-            this.deviceSerial = Properties.Settings.Default.devSerial;
             this.Top = Properties.Settings.Default.x;
             this.Left = Properties.Settings.Default.y;
-            tbPropList.Text = $"{this.deviceSerial}\n{this.Top.ToString()}\n{this.Left.ToString()}";
+            tbPropList.Text = $"{this.Top.ToString()}\n{this.Left.ToString()}";
         }
         
         private void Run()
         {
-            
+            try
+            {
+                ControllerFTDI controller = new ControllerFTDI();
+                tbPropList.Text += controller.ShowDeviceInfo();
+            }
+            catch(Exception e)
+            {
+                tbPropList.Text += $"\n{e.Message}";
+            }
         }
 
         private void Window_Closed(object sender, EventArgs e)
