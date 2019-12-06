@@ -39,10 +39,16 @@ namespace ftdicomm
         {
             try
             {
-                ControllerFTDI controller = new ControllerFTDI();
+                ControllerFTDI controller = new ControllerFTDI(Properties.Settings.Default.Description, Properties.Settings.Default.SerialNumber);
                 tbPropList.Text += controller.ShowDeviceInfo();
+                string sensorData = "";
+                foreach (var sensor in controller.SensorsList)
+                {
+                    sensorData += $"address: {sensor.Address}\npressure: {sensor.P_SI} kgs/sm2, temperature: {sensor.T_SI} C\n";
+                }
+                tbPropList.Text += sensorData;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 tbPropList.Text += $"\n{e.Message}";
             }
