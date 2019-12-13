@@ -29,6 +29,7 @@ namespace ftdicomm
 
         public List<Sensor> SensorsList;
 
+        #region ctors
         public ControllerFTDI()
         {
         }
@@ -44,7 +45,7 @@ namespace ftdicomm
             ftdi = new FTDI();
             status = ftdi.GetNumberOfDevices(ref this.devCount);
             CheckStatus(status);
-            if(this.devCount == 0)
+            if (this.devCount == 0)
             {
                 throw new Exception($"Devices not connected!");
             }
@@ -53,18 +54,35 @@ namespace ftdicomm
             CheckStatus(status);
             Initialization();
             Purge();
-            if(ResetAVR() != 80)
+            if (ResetAVR() != 80)
             {
                 throw new FTDI.FT_EXCEPTION("Error: Reset AVR");
             }
             IdentifyConnectedSensors(10, SensorsList);
-            foreach (var sensor in SensorsList)
-            {
-                RequestData(sensor, 0);
-                RequestData(sensor, 1);
-            }
-            int i = 10;
+            
+            //foreach (var sensor in SensorsList)
+            //{
+            //    RequestData(sensor, 0);
+            //    RequestData(sensor, 1);
+            //}
         }
+
+        public string ShowConnectedSensors()
+        {
+            if (this.SensorsList == null)
+            {
+                throw new FTDI.FT_EXCEPTION("Error: Reset AVR");
+
+            }
+            string result = "";
+            foreach (var sensor in this.SensorsList)
+            {
+                result += $"address: {sensor.Address}\n";
+            }
+            return result;
+
+        }
+        #endregion
 
         private void DataExchange(int timeToSleep)
         {
@@ -202,7 +220,7 @@ namespace ftdicomm
             for (byte i = 1; i <= limit; i++)
             {
                 RequestData(i, 0);
-                if(this.pressureADC != 13_364)
+                if(this.pressureADC != 12_336) //13364
                 {
                     sensors.Add(new Sensor(i));
                 }

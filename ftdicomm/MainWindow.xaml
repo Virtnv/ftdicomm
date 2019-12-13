@@ -12,7 +12,7 @@
             <TextBlock x:Name="tbPropList" Margin="3">
                 
             </TextBlock>
-            <Button x:Name="btnShow" Margin="3">
+            <Button x:Name="btnAsyncCycle" Margin="3" Click="BtnAsyncCycle_Click">
                 Show prop
             </Button>
         </StackPanel>

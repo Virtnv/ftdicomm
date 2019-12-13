@@ -22,5 +22,10 @@ namespace ftdicomm
             this.Address = address;
         }
 
+        public override string ToString()
+        {
+            return $"address: {this.Address}\n";
+        }
+
     }
 }

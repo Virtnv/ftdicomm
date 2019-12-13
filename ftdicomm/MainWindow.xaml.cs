@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ namespace ftdicomm
         {
             InitializeComponent();
             LoadShowProperties();
-            Run();
+            //Run();
         }
 
         private void LoadShowProperties()
@@ -42,11 +43,12 @@ namespace ftdicomm
                 ControllerFTDI controller = new ControllerFTDI(Properties.Settings.Default.Description, Properties.Settings.Default.SerialNumber);
                 tbPropList.Text += controller.ShowDeviceInfo();
                 string sensorData = "";
-                foreach (var sensor in controller.SensorsList)
-                {
-                    sensorData += $"address: {sensor.Address}\npressure: {sensor.P_SI} kgs/sm2, temperature: {sensor.T_SI} C\n";
-                }
-                tbPropList.Text += sensorData;
+                tbPropList.Text += controller.ShowConnectedSensors();
+                //foreach (var sensor in controller.SensorsList)
+                //{
+                //    sensorData += $"address: {sensor.Address}\npressure: {sensor.P_SI} kgs/sm2, temperature: {sensor.T_SI} C\n";
+                //}
+                //tbPropList.Text += sensorData;
             }
             catch (Exception e)
             {
@@ -60,5 +62,32 @@ namespace ftdicomm
             Properties.Settings.Default.y = this.Left;
             Properties.Settings.Default.Save();
         }
+
+        private void BtnAsyncCycle_Click(object sender, RoutedEventArgs e)
+        {
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.WorkerReportsProgress = true;
+            worker.DoWork += worker_DoWork;
+            worker.ProgressChanged += worker_ProgressChanged;
+            worker.RunWorkerAsync();
+        }
+
+        void worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            ControllerFTDI controller = new ControllerFTDI(Properties.Settings.Default.Description, Properties.Settings.Default.SerialNumber);
+            string sensorData = "";
+            foreach (var sensor in controller.SensorsList)
+            {
+                sensorData += $"address: {sensor.Address}\npressure: {sensor.P_SI} kgs/sm2, temperature: {sensor.T_SI} C\n";
+            }
+            ((BackgroundWorker)sender).ReportProgress(1, sensorData);
+
+        }
+
+        void worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            tbPropList.Text += (string)e.UserState;
+        }
+        
     }
 }
