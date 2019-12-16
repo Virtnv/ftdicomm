@@ -21,21 +21,15 @@ namespace ftdicomm
     /// </summary>
     public partial class MainWindow : Window
     {
+        private bool cont = true;
 
         public MainWindow()
         {
             InitializeComponent();
-            LoadShowProperties();
+            LoadingProperties();
             //Run();
         }
 
-        private void LoadShowProperties()
-        {
-            this.Top = Properties.Settings.Default.x;
-            this.Left = Properties.Settings.Default.y;
-            tbPropList.Text = $"{this.Top.ToString()}\n{this.Left.ToString()}";
-        }
-        
         private void Run()
         {
             try
@@ -58,7 +52,18 @@ namespace ftdicomm
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            Properties.Settings.Default.x  = this.Top;
+            SavingProperties();
+        }
+
+        private void LoadingProperties() // загрузка свойств
+        {
+            this.Top = Properties.Settings.Default.x;
+            this.Left = Properties.Settings.Default.y;
+        }
+        
+        private void SavingProperties() // сохранение свойств
+        {
+            Properties.Settings.Default.x = this.Top;
             Properties.Settings.Default.y = this.Left;
             Properties.Settings.Default.Save();
         }
@@ -75,19 +80,36 @@ namespace ftdicomm
         void worker_DoWork(object sender, DoWorkEventArgs e)
         {
             ControllerFTDI controller = new ControllerFTDI(Properties.Settings.Default.Description, Properties.Settings.Default.SerialNumber);
-            string sensorData = "";
-            foreach (var sensor in controller.SensorsList)
+            cont = true;
+            List<Sensor> ls = new List<Sensor>();
+            while (cont)
             {
-                sensorData += $"address: {sensor.Address}\npressure: {sensor.P_SI} kgs/sm2, temperature: {sensor.T_SI} C\n";
+                controller.Cycle();
+                ls = controller.SensorsList;
+                ((BackgroundWorker)sender).ReportProgress(1, ls);
             }
-            ((BackgroundWorker)sender).ReportProgress(1, sensorData);
+            //string sensorData = "";
+
+            //foreach (var sensor in controller.SensorsList)
+            //{
+            //    sensorData += $"address: {sensor.Address}\npressure: {sensor.P_SI} kgs/sm2, temperature: {sensor.T_SI} C\n";
+            //}
+            //((BackgroundWorker)sender).ReportProgress(1, sensorData);
 
         }
 
         void worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            tbPropList.Text += (string)e.UserState;
+            List<Sensor> ls = (List<Sensor>)e.UserState;
+            foreach (var sensor in ls)
+            {
+                tbPropList.Text += sensor.ToString();
+            }
         }
-        
+
+        private void BtnStop_Click(object sender, RoutedEventArgs e)
+        {
+            cont = false;
+        }
     }
 }

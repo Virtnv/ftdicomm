@@ -24,7 +24,7 @@ namespace ftdicomm
 
         public override string ToString()
         {
-            return $"address: {this.Address}\n";
+            return $"address: {this.Address} P si {P_SI} T si {T_SI}\n";
         }
 
     }

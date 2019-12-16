@@ -58,21 +58,28 @@ namespace ftdicomm
             {
                 throw new FTDI.FT_EXCEPTION("Error: Reset AVR");
             }
-            IdentifyConnectedSensors(10, SensorsList);
-            
-            //foreach (var sensor in SensorsList)
-            //{
-            //    RequestData(sensor, 0);
-            //    RequestData(sensor, 1);
-            //}
+            UpdateConnectedSensors(10, SensorsList);
+        }
+        #endregion
+
+        public void Cycle()
+        {
+            if(this.SensorsList is null)
+            {
+                throw new FTDI.FT_EXCEPTION("Error: No connected sensors!");
+            }
+            byte type = 1;
+            foreach (var sensor in this.SensorsList)
+            {
+                RequestData(sensor, type); // si - 1
+            }
         }
 
         public string ShowConnectedSensors()
         {
             if (this.SensorsList == null)
             {
-                throw new FTDI.FT_EXCEPTION("Error: Reset AVR");
-
+                throw new FTDI.FT_EXCEPTION("Error: No connected sensors!");
             }
             string result = "";
             foreach (var sensor in this.SensorsList)
@@ -80,9 +87,8 @@ namespace ftdicomm
                 result += $"address: {sensor.Address}\n";
             }
             return result;
-
         }
-        #endregion
+        
 
         private void DataExchange(int timeToSleep)
         {
@@ -215,16 +221,27 @@ namespace ftdicomm
             return info;
         }
 
-        private void IdentifyConnectedSensors(byte limit, List<Sensor> sensors) // определение подключенных датчиков
+        private void UpdateConnectedSensors(byte limit, List<Sensor> sensors) // определение подключенных датчиков
         {
+            sensors.Clear();
             for (byte i = 1; i <= limit; i++)
             {
                 RequestData(i, 0);
                 if(this.pressureADC != 12_336) //13364
                 {
-                    sensors.Add(new Sensor(i));
+                    Sensor s = new Sensor(i);
+                    UpdateSensorInfo(s);
+                    sensors.Add(s);
                 }
             }
+        }
+
+        private void UpdateSensorInfo(Sensor sensor)
+        {
+            sensor.P_ADC = this.pressureADC;
+            sensor.P_SI = this.pressureSI;
+            sensor.T_ADC = this.temperatureADC;
+            sensor.T_SI = this.temperatureSI;
         }
 
         public double ReadCoeff(byte address, byte coeffNumber, out ushort sm_p, out ushort sn)
