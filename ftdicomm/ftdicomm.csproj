@@ -68,6 +68,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ControllerFTDI.cs" />
+    <Compile Include="Device.cs" />
     <Compile Include="Sensor.cs" />
     <Compile Include="EncDec.cs" />
     <Compile Include="MainWindow.xaml.cs">
