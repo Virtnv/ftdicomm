@@ -1,6 +1,5 @@
 ﻿using System;
 using FTD2XX_NET;
-using static FTD2XX_NET.FTDI;
 
 namespace ftdicomm
 {
@@ -14,9 +13,7 @@ namespace ftdicomm
     }
     class Device
     {
-        private FTDI ftdi;
-        private FT_STATUS status;
-        private FT_DEVICE_INFO_NODE[] deviceList;
+
 
         private byte[] data;
         private readonly string DESCRIPTION; 
@@ -24,7 +21,6 @@ namespace ftdicomm
 
         public Device() // выполнять базовый констр в спец констре.
         {
-            ftdi = new FTDI();
             data = new byte[8];
         }
 

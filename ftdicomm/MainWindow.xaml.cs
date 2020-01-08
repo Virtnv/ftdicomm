@@ -111,5 +111,12 @@ namespace ftdicomm
         {
             cont = false;
         }
+
+        private void BtnTest_Click(object sender, RoutedEventArgs e)
+        {
+            Controller cont = new Controller(Properties.Settings.Default.Description);
+            tbPropList.Text += "O God!";
+            tbPropList.Text += cont.ShowDeviceInfo();
+        }
     }
 }

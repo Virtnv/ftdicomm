@@ -67,6 +67,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Controller.cs" />
     <Compile Include="ControllerFTDI.cs" />
     <Compile Include="Device.cs" />
     <Compile Include="Sensor.cs" />

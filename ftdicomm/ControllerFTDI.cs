@@ -61,7 +61,13 @@ namespace ftdicomm
 
         public void Cycle()
         {
-            if(this.SensorsList is null)
+            Thread thread = new Thread(CycleThread);
+            thread.Start();
+            thread.Join();
+        }
+        private void CycleThread()
+        {
+            if (this.SensorsList is null)
             {
                 throw new FTDI.FT_EXCEPTION("Error: No connected sensors!");
             }

@@ -18,6 +18,9 @@
             <Button x:Name="btnStop" Margin="3" Click="BtnStop_Click">
                 Stop
             </Button>
+            <Button x:Name="btnTest" Margin="3" Click="BtnTest_Click">
+                Test
+            </Button>
         </StackPanel>
     </Grid>
 </Window>
