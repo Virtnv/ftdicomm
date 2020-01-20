@@ -206,7 +206,7 @@ namespace ftdicomm
         }
 
         // показать информацию о подключенном оборудовании
-        public string ShowDeviceInfo()
+        public string ShowDevicesInfo()
         {
             status = ftdi.GetDeviceList(this.deviceList);
             CheckStatus(status);

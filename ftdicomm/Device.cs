@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using FTD2XX_NET;
 
+
+//полностью автономный класс для опроса через ftdi
 namespace ftdicomm
 {
     enum CoefficientName : byte
@@ -20,17 +23,66 @@ namespace ftdicomm
         private readonly string DESCRIPTION; 
         private readonly string SERIAL_NUMBER;
 
+        private FTDI.FT_STATUS status;
+        private uint devCount;
+        private FTDI.FT_DEVICE_INFO_NODE[] deviceList;
+
+        private int testInt = 0;
+
         public Device() // выполнять базовый констр в спец констре.
         {
             data = new byte[8];
             buffer = new byte[200];
+            ftdi = new FTDI();
+            devCount = 0;
         }
-        public Device(FTDI ftdi) : this() // выполнять базовый констр в спец констре.
+        
+        public Device(string description, string serialNumber) : this()
         {
-            this.ftdi = ftdi;
+            this.DESCRIPTION = description;
+            this.SERIAL_NUMBER = serialNumber;
+            Open();
         }
+
         #region MainFunctions
-        public void ReadADC() { }
+        public void ReadADC()
+        {
+            Task task = new Task(ReaderHandler);
+            //public void RequestData(byte address, byte type)        // запрос данных о давлении или температуре
+            //{                                                       // адрес прибора, тип - ацп (0) или si (1)
+            //    dataIn = new byte[200];
+
+            //    dataOut[0] = 0x1A;
+            //    dataOut[1] = 0x00;
+            //    dataOut[2] = address;
+            //    dataOut[3] = type;
+            //    dataOut[4] = 0x55;
+            //    dataOut[5] = 0xAA;
+            //    dataOut[6] = 0xFF;
+            //    dataOut[7] = 0xFF;
+
+            //    DataExchange(250);
+            //    dataOut[0] = 0x22;
+            //    DataExchange(20);
+            //    dataIn = EncDec.DecodeData(dataInBuf);
+            //    switch (type)
+            //    {
+            //        case 0:
+            //            EncDec.CodeToADC(dataIn, out this.pressureADC, out this.temperatureADC);
+            //            break;
+            //        case 1:
+            //            EncDec.CodeToSI(dataIn, out this.pressureSI, out this.temperatureSI);
+            //            break;
+            //        default:
+            //            break;
+            //    }
+            //}
+        }
+        private void ReaderHandler()
+        {
+            testInt = 100;
+        }
+
         public void ReadSI() { }
         public void ReadCoefficient(byte address)
         { }
@@ -52,16 +104,54 @@ namespace ftdicomm
         }
         #endregion
         #region Additional function
-        public bool SetFTDI(FTDI ftdi)
+
+        public void Open()
         {
-            try
+            status = ftdi.GetNumberOfDevices(ref this.devCount);
+            CheckStatus(status);
+            if (this.devCount == 0)
             {
-                this.ftdi = ftdi;
-                return true;
+                throw new Exception($"No connected devices!");
             }
-            catch (Exception)
+            this.deviceList = new FTDI.FT_DEVICE_INFO_NODE[this.devCount];
+            status = ftdi.OpenByDescription(DESCRIPTION);
+            CheckStatus(status);
+            Initialization();
+            Purge();
+            if (ResetAVR() != 80)
             {
-                throw new Exception("ftdi null");
+                throw new FTDI.FT_EXCEPTION("Error: Reset AVR");
+            }
+        }
+
+        private uint ResetAVR()
+        {
+            byte[] resetData = new byte[80];
+            EncDec.FillByteArray(ref resetData, 0x01);
+            uint written = 0;
+            ftdi.Write(resetData, resetData.Length, ref written);
+            Thread.Sleep(100);
+            return written;
+        }
+
+        private void Initialization()
+        {
+            status = ftdi.SetBitMode(0xDF, FTDI.FT_BIT_MODES.FT_BIT_MODE_SYNC_BITBANG);
+            CheckStatus(status);
+            status = ftdi.SetBaudRate(200000);
+            CheckStatus(status);
+            status = ftdi.SetLatency(5);
+            CheckStatus(status);
+            status = ftdi.SetTimeouts(250, 250);
+            CheckStatus(status);
+        }
+
+        private void CheckStatus(FTDI.FT_STATUS status)
+        {
+            if (status != FTDI.FT_STATUS.FT_OK)
+            {
+                FTDI.FT_EXCEPTION ex = new FTDI.FT_EXCEPTION($"Error: {status.ToString()}");
+                throw ex;
             }
         }
 

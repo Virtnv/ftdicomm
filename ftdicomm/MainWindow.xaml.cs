@@ -22,6 +22,7 @@ namespace ftdicomm
     public partial class MainWindow : Window
     {
         private bool cont = true;
+        private Device device;
 
         public MainWindow()
         {
@@ -35,7 +36,7 @@ namespace ftdicomm
             try
             {
                 ControllerFTDI controller = new ControllerFTDI(Properties.Settings.Default.Description, Properties.Settings.Default.SerialNumber);
-                tbPropList.Text += controller.ShowDeviceInfo();
+                tbPropList.Text += controller.ShowDevicesInfo();
                 string sensorData = "";
                 tbPropList.Text += controller.ShowConnectedSensors();
                 //foreach (var sensor in controller.SensorsList)
@@ -114,9 +115,9 @@ namespace ftdicomm
 
         private void BtnTest_Click(object sender, RoutedEventArgs e)
         {
-            Controller cont = new Controller(Properties.Settings.Default.Description);
-            tbPropList.Text += "O God!";
-            tbPropList.Text += cont.ShowDeviceInfo();
+            if(device == null)
+                device = new Device(Properties.Settings.Default.Description, Properties.Settings.Default.SerialNumber);
+            device.ReadADC();
         }
     }
 }
