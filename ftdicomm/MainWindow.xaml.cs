@@ -121,7 +121,9 @@ namespace ftdicomm
                 device = new Device(Properties.Settings.Default.Description, Properties.Settings.Default.SerialNumber);
                 device.Readed += Go;
             }
-            device.ReadADC();
+            device.Cycle(10);
+            //device.ReadADC(4);
+            //device.ReadSI(4);
             //tbPropList.Text += $"main thread {Thread.CurrentThread.ManagedThreadId}";
         }
 

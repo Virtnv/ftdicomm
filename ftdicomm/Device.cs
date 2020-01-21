@@ -60,7 +60,8 @@ namespace ftdicomm
         private uint devCount;
         private FTDI.FT_DEVICE_INFO_NODE[] deviceList;
 
-        
+
+        private object locker;
         public event Action<Outcome> Readed;
 
         #region Internal Values
@@ -79,6 +80,7 @@ namespace ftdicomm
             buffer = new byte[200];
             ftdi = new FTDI();
             devCount = 0;
+            locker = new object();
         }
         
         public Device(string description, string serialNumber) : this()
@@ -89,53 +91,29 @@ namespace ftdicomm
         }
 
         #region MainFunctions
-        public void ReadADC()
+        public void ReadADC(byte address)
         {
             
-            Options opt = new Options(1, 0);
+            Options opt = new Options(address, 0);
             var task = new Task<Outcome>(ReadHandler, opt);
             task.Start();
         }
 
-        private Outcome ReadHandler(object options)
+        public void ReadSI(byte address)
         {
-
-            Options opt = (Options)options;
-            data[0] = 0x1A;
-            data[1] = 0x00;
-            data[2] = opt.address;
-            data[3] = opt.type;
-            data[4] = 0x55;
-            data[5] = 0xAA;
-            data[6] = 0xFF;
-            data[7] = 0xFF;
-
-            DataExchange(250);
-            data[0] = 0x22;
-            DataExchange(20);
-
-            byte[] decodedData = new byte[200];
-            decodedData = EncDec.DecodeData(buffer);
-            Outcome outt;
-            switch (opt.type)
+            Options opt = new Options(address, 1);
+            var task = new Task<Outcome>(ReadHandler, opt);
+            task.Start();
+        }
+        
+        public void Cycle(int count = 0)
+        {
+            for (int i = 0; i < count; i++)
             {
-                case 0:
-                    EncDec.CodeToADC(decodedData, out this.pressureADC, out this.temperatureADC);
-                    outt = new Outcome(pressureADC: this.pressureADC, temperatureADC: this.temperatureADC);
-                    break;
-                case 1:
-                    EncDec.CodeToSI(decodedData, out this.pressureSI, out this.temperatureSI);
-                    outt = new Outcome(pressureSI: this.pressureSI, temperatureSI: this.temperatureSI);
-                    break;
-                default:
-                    outt = new Outcome();
-                    break;
+                this.ReadSI(8);
             }
-            Readed(outt);
-            return outt;
         }
 
-        public void ReadSI() { }
         public void ReadCoefficient(byte address)
         { }
         public byte WriteCoefficient(byte address, CoefficientName name, float value)
@@ -204,6 +182,46 @@ namespace ftdicomm
             {
                 FTDI.FT_EXCEPTION ex = new FTDI.FT_EXCEPTION($"Error: {status.ToString()}");
                 throw ex;
+            }
+        }
+
+        private Outcome ReadHandler(object options)
+        {
+            lock (locker)
+            {
+                Options opt = (Options)options;
+                data[0] = 0x1A;
+                data[1] = 0x00;
+                data[2] = opt.address;
+                data[3] = opt.type;
+                data[4] = 0x55;
+                data[5] = 0xAA;
+                data[6] = 0xFF;
+                data[7] = 0xFF;
+
+                DataExchange(250);
+                data[0] = 0x22;
+                DataExchange(20);
+
+                byte[] decodedData = new byte[200];
+                decodedData = EncDec.DecodeData(buffer);
+                Outcome outt;
+                switch (opt.type)
+                {
+                    case 0:
+                        EncDec.CodeToADC(decodedData, out this.pressureADC, out this.temperatureADC);
+                        outt = new Outcome(pressureADC: this.pressureADC, temperatureADC: this.temperatureADC);
+                        break;
+                    case 1:
+                        EncDec.CodeToSI(decodedData, out this.pressureSI, out this.temperatureSI);
+                        outt = new Outcome(pressureSI: this.pressureSI, temperatureSI: this.temperatureSI);
+                        break;
+                    default:
+                        outt = new Outcome();
+                        break;
+                }
+                Readed(outt);
+                return outt; 
             }
         }
 

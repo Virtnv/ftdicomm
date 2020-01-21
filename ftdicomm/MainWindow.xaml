@@ -16,10 +16,12 @@
             <RowDefinition Height="12*"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <TextBlock x:Name="tbPropList" Margin="3" Grid.Row="0" Grid.Column="0"
-                   Grid.ColumnSpan="2">
 
-        </TextBlock>
+        <ScrollViewer Grid.ColumnSpan="2">
+            <TextBlock x:Name="tbPropList" Margin="3" Grid.Row="0" Grid.Column="0"
+                   Grid.ColumnSpan="2">
+            </TextBlock>
+        </ScrollViewer>
         <StackPanel Orientation="Horizontal" Grid.Column="0"
                     Grid.Row="1" Grid.ColumnSpan="2">
             
