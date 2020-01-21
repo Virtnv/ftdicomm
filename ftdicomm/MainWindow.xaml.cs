@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -115,9 +116,20 @@ namespace ftdicomm
 
         private void BtnTest_Click(object sender, RoutedEventArgs e)
         {
-            if(device == null)
+            if (device == null)
+            {
                 device = new Device(Properties.Settings.Default.Description, Properties.Settings.Default.SerialNumber);
+                device.Readed += Go;
+            }
             device.ReadADC();
+            //tbPropList.Text += $"main thread {Thread.CurrentThread.ManagedThreadId}";
+        }
+
+        private void Go(Outcome outt)
+        {
+            //MessageBox.Show($"thread id {Thread.CurrentThread.ManagedThreadId}");
+            this.Dispatcher.Invoke(() => tbPropList.Text += $"\n{outt}");
+            //tbPropList.Text += outt;
         }
     }
 }

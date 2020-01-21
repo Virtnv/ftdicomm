@@ -8,17 +8,31 @@
         Title="MainWindow" Height="450" Width="300"
         Closed="Window_Closed">
     <Grid>
-        <StackPanel>
-            <TextBlock x:Name="tbPropList" Margin="3">
-                
-            </TextBlock>
-            <Button x:Name="btnAsyncCycle" Margin="3" Click="BtnAsyncCycle_Click">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="12*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock x:Name="tbPropList" Margin="3" Grid.Row="0" Grid.Column="0"
+                   Grid.ColumnSpan="2">
+
+        </TextBlock>
+        <StackPanel Orientation="Horizontal" Grid.Column="0"
+                    Grid.Row="1" Grid.ColumnSpan="2">
+            
+            <Button x:Name="btnAsyncCycle" Margin="3" 
+                    MinWidth="70" Click="BtnAsyncCycle_Click">
                 Show prop
             </Button>
-            <Button x:Name="btnStop" Margin="3" Click="BtnStop_Click">
+            <Button x:Name="btnStop" Margin="3" 
+                    MinWidth="70" Click="BtnStop_Click">
                 Stop
             </Button>
-            <Button x:Name="btnTest" Margin="3" Click="BtnTest_Click">
+            <Button x:Name="btnTest" Margin="3" 
+                    MinWidth="70" Click="BtnTest_Click">
                 Test
             </Button>
         </StackPanel>

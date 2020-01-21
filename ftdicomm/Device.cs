@@ -15,6 +15,39 @@ namespace ftdicomm
         numdev,
         kep3
     }
+    struct Options
+    {
+        public byte address;
+        public byte type;
+
+        public Options(byte address, byte type)
+        {
+            this.address = address;
+            this.type = type;
+        }
+    }
+
+    struct Outcome
+    {
+        public float pressureSI;
+        public float temperatureSI;
+        public ushort pressureADC;
+        public ushort temperatureADC;
+
+        public Outcome(float pressureSI = 0f, float temperatureSI = 0f, ushort pressureADC = 0, ushort temperatureADC = 0)
+        {
+            this.pressureSI = pressureSI;
+            this.temperatureSI = temperatureSI;
+            this.pressureADC = pressureADC;
+            this.temperatureADC = temperatureADC;
+        }
+
+        public override string ToString()
+        {
+            return $"ADC: P {pressureADC}, T {temperatureADC}\nSI: P {pressureSI} kgs/cm2, T {temperatureSI} C";
+        }
+    }
+
     class Device
     {
         private FTDI ftdi;
@@ -26,6 +59,17 @@ namespace ftdicomm
         private FTDI.FT_STATUS status;
         private uint devCount;
         private FTDI.FT_DEVICE_INFO_NODE[] deviceList;
+
+        
+        public event Action<Outcome> Readed;
+
+        #region Internal Values
+        private float pressureSI = 0f;
+        private float temperatureSI = 0f;
+        
+        private ushort pressureADC = 0;
+        private ushort temperatureADC = 0;
+        #endregion
 
         private int testInt = 0;
 
@@ -47,40 +91,48 @@ namespace ftdicomm
         #region MainFunctions
         public void ReadADC()
         {
-            Task task = new Task(ReaderHandler);
-            //public void RequestData(byte address, byte type)        // запрос данных о давлении или температуре
-            //{                                                       // адрес прибора, тип - ацп (0) или si (1)
-            //    dataIn = new byte[200];
-
-            //    dataOut[0] = 0x1A;
-            //    dataOut[1] = 0x00;
-            //    dataOut[2] = address;
-            //    dataOut[3] = type;
-            //    dataOut[4] = 0x55;
-            //    dataOut[5] = 0xAA;
-            //    dataOut[6] = 0xFF;
-            //    dataOut[7] = 0xFF;
-
-            //    DataExchange(250);
-            //    dataOut[0] = 0x22;
-            //    DataExchange(20);
-            //    dataIn = EncDec.DecodeData(dataInBuf);
-            //    switch (type)
-            //    {
-            //        case 0:
-            //            EncDec.CodeToADC(dataIn, out this.pressureADC, out this.temperatureADC);
-            //            break;
-            //        case 1:
-            //            EncDec.CodeToSI(dataIn, out this.pressureSI, out this.temperatureSI);
-            //            break;
-            //        default:
-            //            break;
-            //    }
-            //}
+            
+            Options opt = new Options(1, 0);
+            var task = new Task<Outcome>(ReadHandler, opt);
+            task.Start();
         }
-        private void ReaderHandler()
+
+        private Outcome ReadHandler(object options)
         {
-            testInt = 100;
+
+            Options opt = (Options)options;
+            data[0] = 0x1A;
+            data[1] = 0x00;
+            data[2] = opt.address;
+            data[3] = opt.type;
+            data[4] = 0x55;
+            data[5] = 0xAA;
+            data[6] = 0xFF;
+            data[7] = 0xFF;
+
+            DataExchange(250);
+            data[0] = 0x22;
+            DataExchange(20);
+
+            byte[] decodedData = new byte[200];
+            decodedData = EncDec.DecodeData(buffer);
+            Outcome outt;
+            switch (opt.type)
+            {
+                case 0:
+                    EncDec.CodeToADC(decodedData, out this.pressureADC, out this.temperatureADC);
+                    outt = new Outcome(pressureADC: this.pressureADC, temperatureADC: this.temperatureADC);
+                    break;
+                case 1:
+                    EncDec.CodeToSI(decodedData, out this.pressureSI, out this.temperatureSI);
+                    outt = new Outcome(pressureSI: this.pressureSI, temperatureSI: this.temperatureSI);
+                    break;
+                default:
+                    outt = new Outcome();
+                    break;
+            }
+            Readed(outt);
+            return outt;
         }
 
         public void ReadSI() { }
